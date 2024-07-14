@@ -22,13 +22,12 @@ public class AccountController {
     @GetMapping("/create-account")
     public String createAccount() {
         accountService.createAccount();
-
         return "success";
     }
 
     @GetMapping("/account/{id}")
     public Account getAccount(
-            @PathVariable Long id) {
+            @PathVariable Long id){
         return accountService.getAccount(id);
     }
 }
