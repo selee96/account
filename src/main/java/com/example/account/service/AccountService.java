@@ -77,18 +77,21 @@ public class AccountService {
         account.setAccountStatus(AccountStatus.UNREGISTERED);
         account.setUnRegisteredAt(LocalDateTime.now());
 
+        // 해당 코드가 없어도 무방하나 test 위해 작성
+        accountRepository.save(account);
+
         return AccountDto.fromEntity(account);
     }
 
     private void validateDeleteAccount(AccountUser accountUser, Account account) {
         if (!Objects.equals(accountUser.getId(), account.getAccountUser().getId())) {
-            throw new AccountException(ErrorCode.ACCOUNT_NOT_FOUND);
+            throw new AccountException(ErrorCode.USER_ACCOUNT_UN_MATCH);
         }
         if (account.getAccountStatus() == AccountStatus.UNREGISTERED) {
             throw new AccountException(ErrorCode.ACCOUNT_ALREADY_UNREGISTERED);
         }
         if (account.getBalance() > 0) {
-            throw new AccountException(ErrorCode.ACCOUNT_ALREADY_UNREGISTERED);
+            throw new AccountException(ErrorCode.BALANCE_NOT_EMPTY);
         }
     }
 }
