@@ -1,5 +1,6 @@
 package com.example.account.controller;
 
+import com.example.account.dto.CancelBalance;
 import com.example.account.dto.TransactionDto;
 import com.example.account.dto.UseBalance;
 import com.example.account.service.TransactionService;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static com.example.account.type.TransactionResultType.S;
+import static com.example.account.type.TransactionType.CANCEL;
 import static com.example.account.type.TransactionType.USE;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -60,6 +62,36 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.accountNumber").value("1234567890"))
                 .andExpect(jsonPath("$.transactionResult").value("S"))
                 .andExpect(jsonPath("$.transactionId").value("1"))
+                .andExpect(jsonPath("$.amount").value(100L));
+    }
+
+    @Test
+    void successCancelBalance() throws Exception {
+        // given
+        given(transactionService.cancelBalance(anyString(), anyString(), anyLong()))
+                .willReturn(TransactionDto.builder()
+                        .accountNumber("1234567890")
+                        .transactionType(CANCEL)
+                        .transactionResultType(S)
+                        .amount(100L)
+                        .balanceSnapshot(400L)
+                        .transactionId("transactionIdForCancel")
+                        .transactedAt(LocalDateTime.now())
+                        .build());
+
+        // when
+        // then
+        mockMvc.perform(post("/transaction/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new CancelBalance.Request("transactionId",
+                                        "1000000002", 3000L)
+                        ))
+                ).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountNumber").value("1234567890"))
+                .andExpect(jsonPath("$.transactionResult").value("S"))
+                .andExpect(jsonPath("$.transactionId").value("transactionIdForCancel"))
                 .andExpect(jsonPath("$.amount").value(100L));
     }
 }
