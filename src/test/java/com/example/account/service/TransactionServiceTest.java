@@ -454,4 +454,56 @@ class TransactionServiceTest {
         // then
         assertEquals(ErrorCode.TOO_OLD_ORDER_TO_CANCEL, accountException.getErrorCode());
     }
+
+    @Test
+    void successQueryTransaction() {
+        // given
+        AccountUser user = AccountUser.builder()
+                .id(15L)
+                .name("doyoung")
+                .build();
+        Account account = Account.builder()
+                .id(1L)
+                .accountUser(user)
+                .accountStatus(AccountStatus.IN_USE)
+                .balance(10000L)
+                .accountNumber("1000000012").build();
+        Transaction transaction = Transaction.builder()
+                .transactionType(USE)
+                .transactionResultType(S)
+                .account(account)
+                .transactionId("transactionId")
+                .balanceSnapshot(9000L)
+                .amount(CANCEL_AMOUNT)
+                .transactedAt(LocalDateTime.now())
+                .build();
+        given(transactionRepository.findByTransactionId(anyString()))
+                .willReturn(Optional.of(transaction));
+
+        // when
+        TransactionDto transactionDto = transactionService.queryTransaction("trxId");
+
+        // then
+        assertEquals(USE, transactionDto.getTransactionType());
+        assertEquals(S, transactionDto.getTransactionResultType());
+        assertEquals(CANCEL_AMOUNT, transactionDto.getAmount());
+        assertEquals("transactionId", transactionDto.getTransactionId());
+        assertEquals(9000L, transactionDto.getBalanceSnapshot());
+    }
+
+    @Test
+    @DisplayName("원거래 없음 - 거래 조회 실패")
+    void queryTransaction_transactionNotFound() {
+        // given
+        given(transactionRepository.findByTransactionId(anyString()))
+                .willReturn(Optional.empty());
+
+        // when
+        AccountException accountException = assertThrows(AccountException.class,
+                () -> transactionService.queryTransaction(
+                        "transactionId"));
+
+        // then
+        assertEquals(ErrorCode.TRANSACTION_NOT_FOUND, accountException.getErrorCode());
+    }
 }
