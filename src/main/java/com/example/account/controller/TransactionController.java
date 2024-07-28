@@ -28,8 +28,8 @@ public class TransactionController {
     @AccountLock
     public UseBalance.Response useBalance(
             @Valid @RequestBody UseBalance.Request request
-    ) {
-
+    ) throws InterruptedException {
+        Thread.sleep(3000L);
         try {
             return UseBalance.Response.from(
                     transactionService.useBalance(request.getUserId(),
